@@ -1,8 +1,9 @@
+import json
+from pprint import pprint
+
+
 dictionary = {}
-clitics = {}
-possessives = {}
-numerus = {}
-casus = {}
+
 
 def known(word):
     if word in dictionary:
@@ -10,19 +11,18 @@ def known(word):
     else:
         return False
 
-# read Tommi's files
-def read_dictionary():
-    global dictionary
-    dictionary = {}
 
-def lookup(word):
+def read_dictionary(dictfile:str='/home/jussi/data/1.case/analyses.json') -> dict:
+    '''Read the OMORFI dictionary which is in json form on disc.'''
+    global dictionary
+    with open(dictfile) as f:
+        dictionary = json.load(f)
+    return dictionary
+
+
+def lookup(word:str) -> dict:
+    '''Look up a word to see if it is in the loaded OMORFI dictionary. '''
     if known(word):
-        r = {}
-        r["lemma"] = dictionary[word]
-        r["luku"] = numerus[word]
-        r["sija"] = casus[word]
-        r["omistus"] = possessives[word]
-        r["liite"] = clitics[word]
-        return r
+        return dictionary[word]
     else:
         return None
