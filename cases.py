@@ -2,8 +2,6 @@ import morphology
 import hyperdimensionalsemanticspace
 from nltk import sent_tokenize
 from nltk import word_tokenize
-from nltk import FreqDist
-from nltk import Text
 import readrawtext
 
 
@@ -34,7 +32,6 @@ window = 2
 texts = readrawtext.readtexts()
 readrawtext.readstats()
 textbag = []
-sentbag = []
 flag = []
 textflag = []
 for text in texts:
@@ -44,12 +41,11 @@ for text in texts:
         i = 0
         for word in words:
             i += 1
-            # PUT WORD IN TMPTEXTBAG AND TMPSENTBAG
+            textbag.append(word)
             if morphology.known(word):
                 flag.append(word)
                 r = morphology.lookup(word)
                 textflag.append(r["lemma"])
-                # GET CTX WINDOWS HERE AND OPERATE ON THEM
                 lhs = words[i-window:i]
                 rhs = words[i+1:i+window+1]
                 tokencontextspace.observe(word)
@@ -105,42 +101,48 @@ for text in texts:
                     if "PA" in r:
                         featurecontextspace.addintoitem("PA", rw, 1,
                                                     "after")
-                    ffs = [r["case"], r["num"]]
-                    if "poss" in r:
-                        ffs.append(r["poss"])
-                    if "KO" in r:
-                        ffs.append("KO")
-                    if "KAAN" in r:
-                        ffs.append("KAAN")
-                    if "HAN" in r:
-                        ffs.append("HAN")
-                    if "PA" in r:
+                ffs = [r["case"], r["num"]]
+                if "poss" in r:
+                    ffs.append(r["poss"])
+                if "KO" in r:
+                    ffs.append("KO")
+                if "KAAN" in r:
+                    ffs.append("KAAN")
+                if "HAN" in r:
+                    ffs.append("HAN")
+                if "PA" in r:
                         ffs.append("PA")
                 for fff in ffs:
                     for eee in ffs:
                         if fff != eee:
                                 featurecollocationspace.addintoitem(fff, eee)
         for knownword in flag:
-            nop(knownword)
-            # add all words from sentbag into the three *utterancespaces
-            # add all words from sentbag into textbag
+            textflag.append(knownword)
+            r = morphology.lookup(knownword)
+            tokenutterancespace.observe(knownword)
+            featureutterancespace.observe(r["case"])
+            featureutterancespace.observe(r["num"])
+            if "poss" in r:
+                featureutterancespace.observe(r["poss"])
+            lemmautterancespace.observe(r["lemma"])
+            for word in words:
+                tokenutterancespace.addintoitem(knownword, word)
+                featureutterancespace.addintoitem(r["case"], word)
+                featureutterancespace.addintoitem(r["num"], word)
+                if "poss" in r:
+                    featureutterancespace.observe(r["poss"], word)
+                lemmautterancespace.addintoitem(r["lemma"], word)
         flag = []
-        sentbag = []
     for knownlemma in textflag:
-        nop(knownlemma)
+        for word in textbag:
+            lemmatextspace.addintoitem(knownlemma, word)
     textflag = []
-        # add all words from textbag into lemmatextspace
     textbag = []
 
-for i in tokencontextspace.contextspace:
-    print(i)
-    print(tokencontextspace.contextneighbours(i))
-for i in featurecontextspace.contextspace:
-    print(i)
-    print(featurecontextspace.contextneighbours(i))
-for i in featurecollocationspace.contextspace:
-    print(i)
-    print(featurecollocationspace.contextneighbours(i))
-
-
+for s in [tokencontextspace, featurecontextspace, featurecollocationspace,
+          tokenutterancespace, featureutterancespace, lemmautterancespace,
+          lemmatextspace]:
+    for i in s.contextspace:
+        print(i)
+        print(s.contextneighbours(i))
 
