@@ -63,48 +63,48 @@ for text in texts:
                     featurecollocationspace.observe(r["poss"])
                 for l in lhs:
                     tokencontextspace.addintoitem(word, l, readrawtext.weight(word),
-                                                  tokencontextspace.permutationcollection["before"])
+                                                  "before")
                     featurecontextspace.addintoitem(r["case"], l, 1,
-                                                  tokencontextspace.permutationcollection["before"])
+                                                  "before")
                     featurecontextspace.addintoitem(r["num"], l, 1,
-                                                    tokencontextspace.permutationcollection["before"])
+                                                    "before")
                     if "poss" in r:
                         featurecontextspace.addintoitem(r["poss"], r, 1,
-                                                    tokencontextspace.permutationcollection["before"])
+                                                    "before")
                     if "KO" in l:
                         featurecontextspace.addintoitem("KO", l, 1,
-                                                        featurecontextspace.permutationcollection["before"])
+                                                        "before")
                     if "KAAN" in l:
                         featurecontextspace.addintoitem("KAAN", l, 1,
-                                                        featurecontextspace.permutationcollection["before"])
+                                                        "before")
                     if "HAN" in l:
                         featurecontextspace.addintoitem("HAN", l, 1,
-                                                        featurecontextspace.permutationcollection["before"])
+                                                        "before")
                     if "PA" in l:
                         featurecontextspace.addintoitem("PA", l, 1,
-                                                        featurecontextspace.permutationcollection["before"])
+                                                        "before")
                 for rw in rhs:
                     tokencontextspace.addintoitem(word, rw, readrawtext.weight(word),
-                                                  tokencontextspace.permutationcollection["after"])
+                                                  "after")
                     featurecontextspace.addintoitem(r["case"], rw, 1,
-                                                  tokencontextspace.permutationcollection["after"])
+                                                  "after")
                     featurecontextspace.addintoitem(r["num"], rw, 1,
-                                                    tokencontextspace.permutationcollection["after"])
+                                                    "after")
                     if "poss" in r:
                         featurecontextspace.addintoitem(r["poss"], rw, 1,
-                                                    tokencontextspace.permutationcollection["after"])
+                                                    "after")
                     if "KO" in r:
                         featurecontextspace.addintoitem("KO", rw, 1,
-                                                    featurecontextspace.permutationcollection["after"])
+                                                    "after")
                     if "KAAN" in r:
                         featurecontextspace.addintoitem("KAAN", rw, 1,
-                                                    featurecontextspace.permutationcollection["after"])
+                                                    "after")
                     if "HAN" in r:
                         featurecontextspace.addintoitem("HAN", rw, 1,
-                                                    featurecontextspace.permutationcollection["after"])
+                                                    "after")
                     if "PA" in r:
                         featurecontextspace.addintoitem("PA", rw, 1,
-                                                    featurecontextspace.permutationcollection["after"])
+                                                    "after")
                     ffs = [r["case"], r["num"]]
                     if "poss" in r:
                         ffs.append(r["poss"])
@@ -116,10 +116,10 @@ for text in texts:
                         ffs.append("HAN")
                     if "PA" in r:
                         ffs.append("PA")
-                    for fff in ffs:
-                        for eee in ffs:
-                            if fff != eee:
-                                    featurecollocationspace.addintoitem(fff, eee)
+                for fff in ffs:
+                    for eee in ffs:
+                        if fff != eee:
+                                featurecollocationspace.addintoitem(fff, eee)
         for knownword in flag:
             nop(knownword)
             # add all words from sentbag into the three *utterancespaces
@@ -132,9 +132,15 @@ for text in texts:
         # add all words from textbag into lemmatextspace
     textbag = []
 
+for i in tokencontextspace.contextspace:
+    print(i)
+    print(tokencontextspace.contextneighbours(i))
 for i in featurecontextspace.contextspace:
     print(i)
-
+    print(featurecontextspace.contextneighbours(i))
+for i in featurecollocationspace.contextspace:
+    print(i)
+    print(featurecollocationspace.contextneighbours(i))
 
 
 
