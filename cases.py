@@ -9,139 +9,105 @@ def nop(dummy):
     # do nothing
     return None
 
+dimensionality = 2000
+denseness = 10
 
-tokenutterancespace = hyperdimensionalsemanticspace.SemanticSpace(2000, 10)
-featureutterancespace = hyperdimensionalsemanticspace.SemanticSpace(2000, 10)
-lemmautterancespace = hyperdimensionalsemanticspace.SemanticSpace(2000, 10)
-tokencontextspace = hyperdimensionalsemanticspace.SemanticSpace(2000, 10)
-featurecontextspace = hyperdimensionalsemanticspace.SemanticSpace(2000, 10)
-lemmatextspace = hyperdimensionalsemanticspace.SemanticSpace(2000, 10)
-featurecollocationspace = hyperdimensionalsemanticspace.SemanticSpace(2000, 10)
+# tokens x words context 2x2
+tokencontextspace = hyperdimensionalsemanticspace.SemanticSpace(dimensionality, denseness, "token vs wds, 2x2")
+# tokens x words context sentence
+tokenutterancespace = hyperdimensionalsemanticspace.SemanticSpace(dimensionality, denseness, "token vs wds, utt")
+# lemmas x cases context one token per entire corpus
+lemmacasespace = hyperdimensionalsemanticspace.SemanticSpace(dimensionality,denseness, "lemma x case")
+# lemmas x cases per text
+# lemmacasetextspace = hyperdimensionalsemanticspace.SemanticSpace(dimensionality,denseness)
+
+# feats x feats context one token per entire corpus
+featurecollocationspace = hyperdimensionalsemanticspace.SemanticSpace(dimensionality, denseness, "feats vs feats")
+# feats x words context sentence
+featureutterancespace = hyperdimensionalsemanticspace.SemanticSpace(dimensionality, denseness, "feats vs wds, utt")
+# feats x words context 2x2
+featurecontextspace = hyperdimensionalsemanticspace.SemanticSpace(dimensionality, denseness, "feats vs wds, 2x2")
+
+# lemmas x words context text (topical analysis)
+# lemmatextspace = hyperdimensionalsemanticspace.SemanticSpace(dimensionality, denseness)
+
 morphology.read_dictionary('/home/jussi/data/1.case/analyses.mini.json')
 
-featurecontextspace.observe("KO")
-featurecontextspace.observe("KAAN")
-featurecontextspace.observe("HAN")
-featurecontextspace.observe("PA")
-featurecollocationspace.observe("KO")
-featurecollocationspace.observe("KAAN")
-featurecollocationspace.observe("HAN")
-featurecollocationspace.observe("PA")
+clitics = ["KO", "KAAN", "KIN", "HAN", "PA"]
+for cc in clitics:
+    featurecontextspace.observe(cc)
+    featurecollocationspace.observe(cc)
 
-window = 2
-texts = readrawtext.readtexts()
 readrawtext.readstats()
-textbag = []
-flag = []
-textflag = []
-for text in texts:
-    ss = sent_tokenize(text.lower())
-    for sent in ss:
-        words = word_tokenize(sent)
-        i = 0
-        for word in words:
-            i += 1
-            textbag.append(word)
-            if morphology.known(word):
-                flag.append(word)
-                r = morphology.lookup(word)
-                textflag.append(r["lemma"])
-                lhs = words[i-window:i]
-                rhs = words[i+1:i+window+1]
-                tokencontextspace.observe(word)
-                featurecontextspace.observe(r["case"])
-                featurecontextspace.observe(r["num"])
-                if "poss" in r:
-                    featurecontextspace.observe(r["poss"])
-                featurecollocationspace.observe(r["case"])
-                featurecollocationspace.observe(r["num"])
-                if "poss" in r:
-                    featurecollocationspace.observe(r["poss"])
-                for l in lhs:
-                    tokencontextspace.addintoitem(word, l, readrawtext.weight(word),
-                                                  "before")
-                    featurecontextspace.addintoitem(r["case"], l, 1,
-                                                  "before")
-                    featurecontextspace.addintoitem(r["num"], l, 1,
-                                                    "before")
-                    if "poss" in r:
-                        featurecontextspace.addintoitem(r["poss"], r, 1,
-                                                    "before")
-                    if "KO" in l:
-                        featurecontextspace.addintoitem("KO", l, 1,
-                                                        "before")
-                    if "KAAN" in l:
-                        featurecontextspace.addintoitem("KAAN", l, 1,
-                                                        "before")
-                    if "HAN" in l:
-                        featurecontextspace.addintoitem("HAN", l, 1,
-                                                        "before")
-                    if "PA" in l:
-                        featurecontextspace.addintoitem("PA", l, 1,
-                                                        "before")
-                for rw in rhs:
-                    tokencontextspace.addintoitem(word, rw, readrawtext.weight(word),
-                                                  "after")
-                    featurecontextspace.addintoitem(r["case"], rw, 1,
-                                                  "after")
-                    featurecontextspace.addintoitem(r["num"], rw, 1,
-                                                    "after")
-                    if "poss" in r:
-                        featurecontextspace.addintoitem(r["poss"], rw, 1,
-                                                    "after")
-                    if "KO" in r:
-                        featurecontextspace.addintoitem("KO", rw, 1,
-                                                    "after")
-                    if "KAAN" in r:
-                        featurecontextspace.addintoitem("KAAN", rw, 1,
-                                                    "after")
-                    if "HAN" in r:
-                        featurecontextspace.addintoitem("HAN", rw, 1,
-                                                    "after")
-                    if "PA" in r:
-                        featurecontextspace.addintoitem("PA", rw, 1,
-                                                    "after")
-                ffs = [r["case"], r["num"]]
-                if "poss" in r:
-                    ffs.append(r["poss"])
-                if "KO" in r:
-                    ffs.append("KO")
-                if "KAAN" in r:
-                    ffs.append("KAAN")
-                if "HAN" in r:
-                    ffs.append("HAN")
-                if "PA" in r:
-                        ffs.append("PA")
-                for fff in ffs:
-                    for eee in ffs:
-                        if fff != eee:
-                                featurecollocationspace.addintoitem(fff, eee)
-        for knownword in flag:
-            textflag.append(knownword)
-            r = morphology.lookup(knownword)
-            tokenutterancespace.observe(knownword)
-            featureutterancespace.observe(r["case"])
-            featureutterancespace.observe(r["num"])
-            if "poss" in r:
-                featureutterancespace.observe(r["poss"])
-            lemmautterancespace.observe(r["lemma"])
-            for word in words:
-                tokenutterancespace.addintoitem(knownword, word)
-                featureutterancespace.addintoitem(r["case"], word)
-                featureutterancespace.addintoitem(r["num"], word)
-                if "poss" in r:
-                    featureutterancespace.observe(r["poss"], word)
-                lemmautterancespace.addintoitem(r["lemma"], word)
-        flag = []
-    for knownlemma in textflag:
-        for word in textbag:
-            lemmatextspace.addintoitem(knownlemma, word)
-    textflag = []
-    textbag = []
+window = 2
 
-for s in [tokencontextspace, featurecontextspace, featurecollocationspace,
-          tokenutterancespace, featureutterancespace, lemmautterancespace,
-          lemmatextspace]:
+
+
+files = readrawtext.getfilelist()
+for file in files:
+    texts = readrawtext.doonetextfile(file)
+
+    flag = []
+    for text in texts:
+        ss = sent_tokenize(text.lower())
+        for sent in ss:
+            words = word_tokenize(sent)
+            i = 0
+            for word in words:
+                i += 1
+                if morphology.known(word):
+                    flag.append(word)
+                    featureset = morphology.lookup(word)
+                    lemma = featureset["lemma"]
+                    lemmacasespace.observe(lemma)
+                    thesefeatures = [featureset["case"], featureset["num"]]
+                    if "poss" in featureset:
+                        thesefeatures.append(featureset["poss"])
+                    for cc in clitics:
+                        if cc in featureset:
+                            thesefeatures.append(cc)
+                    for fff in thesefeatures:
+                        featurecontextspace.observe(fff)
+                        featurecollocationspace.observe(fff)
+                        lemmacasespace.addintoitem(lemma, fff)
+                        for eee in thesefeatures:
+                            if fff != eee:
+                                featurecollocationspace.addintoitem(fff, eee)
+                    tokencontextspace.observe(word)
+                    lhs = words[i-window:i]
+                    rhs = words[i+1:i+window+1]
+                    for lw in lhs:
+                        tokencontextspace.addintoitem(word, lw, readrawtext.weight(word),
+                                                      "before")
+                        for fff in thesefeatures:
+                            featurecontextspace.addintoitem(fff, lw, 1, "before")
+                    for rw in rhs:
+                        tokencontextspace.addintoitem(word, rw, readrawtext.weight(word), "after")
+                        for fff in thesefeatures:
+                            featurecontextspace.addintoitem(fff, rw, 1,"after")
+            for knownword in flag:
+                featureset = morphology.lookup(knownword)
+                thesefeatures = [featureset["case"], featureset["num"]]
+                if "poss" in featureset:
+                    thesefeatures.append(featureset["poss"])
+                for cc in clitics:
+                    if cc in featureset:
+                        thesefeatures.append(cc)
+                tokenutterancespace.observe(knownword)
+                for fff in thesefeatures:
+                    featureutterancespace.observe(fff)
+                for word in words:
+                    tokenutterancespace.addintoitem(knownword, word)
+                    for fff in thesefeatures:
+                        featureutterancespace.addintoitem(fff, word)
+            flag = []
+
+for s in [tokencontextspace, tokenutterancespace,
+          featurecontextspace, featureutterancespace,
+          featurecollocationspace,
+          lemmacasespace]:
+    print("===========")
+    print(s.name)
     for i in s.contextspace:
         print(i)
         print(s.contextneighbours(i))
