@@ -3,7 +3,7 @@ from pprint import pprint
 
 
 dictionary = {}
-
+cache = {}
 
 def known(word):
     if word in dictionary:
@@ -26,3 +26,17 @@ def lookup(word:str) -> dict:
         return dictionary[word]
     else:
         return None
+
+def lookupforms(word:str) -> list:
+    if word in cache:
+        return cache[word]
+    else:
+        l = []
+        for token in dictionary:
+            r = lookup(token)
+            if r["lemma"] == word:
+                l.append(token)
+        cache[word] = l
+        return l
+
+
