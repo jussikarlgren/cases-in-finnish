@@ -44,9 +44,12 @@ window = 2
 
 
 files = readrawtext.getfilelist()
+i = 0
+n = 0
 for file in files:
+    i += 1
     texts = readrawtext.doonetextfile(file)
-
+    n += len(texts)
     flag = []
     for text in texts:
         ss = sent_tokenize(text.lower())
@@ -73,7 +76,7 @@ for file in files:
                         for eee in thesefeatures:
                             if fff != eee:
                                 featurecollocationspace.addintoitem(fff, eee)
-                    tokencontextspace.observe(word)
+                    tokencontextspace.observe(word, True, lemma)
                     lhs = words[i-window:i]
                     rhs = words[i+1:i+window+1]
                     for lw in lhs:
@@ -93,7 +96,7 @@ for file in files:
                 for cc in clitics:
                     if cc in featureset:
                         thesefeatures.append(cc)
-                tokenutterancespace.observe(knownword)
+                tokenutterancespace.observe(knownword, True, featureset["lemma"])
                 for fff in thesefeatures:
                     featureutterancespace.observe(fff)
                 for word in words:
@@ -101,14 +104,19 @@ for file in files:
                     for fff in thesefeatures:
                         featureutterancespace.addintoitem(fff, word)
             flag = []
-
-for s in [tokencontextspace, tokenutterancespace,
-          featurecontextspace, featureutterancespace,
-          featurecollocationspace,
-          lemmacasespace]:
-    print("===========")
-    print(s.name)
-    for i in s.contextspace:
-        print(i)
-        print(s.contextneighbours(i))
+    if i > 10:
+        i = 0
+        print("==", n, "============", sep="\t")
+        for s in [tokencontextspace, tokenutterancespace]:
+            print(s.name)
+            for oneitem in s.contextspace:
+                print(oneitem)
+                print(s.contextneighbours(oneitem,100,True,True))
+        for s in [featurecontextspace, featureutterancespace,
+                  featurecollocationspace,
+                  lemmacasespace]:
+            print(s.name)
+            for oneitem in s.contextspace:
+                print(oneitem)
+                print(s.contextneighbours(oneitem,100,True))
 
