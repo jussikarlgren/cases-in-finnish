@@ -63,15 +63,12 @@ for file in files:
                     featureset = morphology.lookup(word)
                     lemma = featureset["lemma"]
                     lemmacasespace.observe(lemma)
-                    thesefeatures = [featureset["case"], featureset["num"]]
-                    featurecontextspace.observe(featureset["case"], True, "case")
-                    featurecollocationspace.observe(featureset["case"], True, "case")
-                    featurecontextspace.observe(featureset["num"], True, "num")
-                    featurecollocationspace.observe(featureset["num"], True, "num")
-                    if "poss" in featureset:
-                        featurecontextspace.observe(featureset["poss"], True, "poss")
-                        featurecollocationspace.observe(featureset["poss"], True, "poss")
-                        thesefeatures.append(featureset["poss"])
+                    thesefeatures = []
+                    for dd in ["case", "num", "poss"]:
+                        if dd in featureset:
+                            featurecontextspace.observe(featureset[dd], True, dd)
+                            featurecollocationspace.observe(featureset[dd], True, dd)
+                            thesefeatures.append(dd)
                     for cc in clitics:
                         if cc in featureset:
                             featurecontextspace.observe(cc, True, "clitic")
@@ -97,12 +94,11 @@ for file in files:
                 antalord += len(words)
             for knownword in flag:
                 featureset = morphology.lookup(knownword)
-                thesefeatures = [featureset["case"], featureset["num"]]
-                featureutterancespace.observe(featureset["case"], True, "case")
-                featureutterancespace.observe(featureset["num"], True, "num")
-                if "poss" in featureset:
-                    featureutterancespace.observe(featureset["poss"], True, "poss")
-                    thesefeatures.append(featureset["poss"])
+                thesefeatures = []
+                for dd in ["case", "num", "poss"]:
+                    if dd in featureset:
+                        featureutterancespace.observe(featureset[dd], True, dd)
+                        thesefeatures.append(dd)
                 for cc in clitics:
                     if cc in featureset:
                         featureutterancespace.observe(cc, True, "clitic")
