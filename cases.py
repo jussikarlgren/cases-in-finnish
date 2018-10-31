@@ -9,6 +9,7 @@ def nop(dummy):
     # do nothing
     return None
 
+
 dimensionality = 2000
 denseness = 10
 
@@ -17,7 +18,7 @@ tokencontextspace = hyperdimensionalsemanticspace.SemanticSpace(dimensionality, 
 # tokens x words context sentence
 tokenutterancespace = hyperdimensionalsemanticspace.SemanticSpace(dimensionality, denseness, "token vs wds, utt")
 # lemmas x cases context one token per entire corpus
-lemmacasespace = hyperdimensionalsemanticspace.SemanticSpace(dimensionality,denseness, "lemma x case")
+lemmacasespace = hyperdimensionalsemanticspace.SemanticSpace(dimensionality, denseness, "lemma x case")
 # lemmas x cases per text
 # lemmacasetextspace = hyperdimensionalsemanticspace.SemanticSpace(dimensionality,denseness)
 
@@ -40,16 +41,15 @@ for cc in clitics:
 
 readrawtext.readstats()
 window = 2
-
-
-
 files = readrawtext.getfilelist()
 i = 0
-n = 0
+antalsatser = 0
+antalord = 0
+threshold = 0.1
 for file in files:
     i += 1
     texts = readrawtext.doonetextfile(file)
-    n += len(texts)
+    antalsatser += len(texts)
     flag = []
     for text in texts:
         ss = sent_tokenize(text.lower())
@@ -64,14 +64,20 @@ for file in files:
                     lemma = featureset["lemma"]
                     lemmacasespace.observe(lemma)
                     thesefeatures = [featureset["case"], featureset["num"]]
+                    featurecontextspace.observe(featureset["case"], True, "case")
+                    featurecollocationspace.observe(featureset["case"], True, "case")
+                    featurecontextspace.observe(featureset["num"], True, "num")
+                    featurecollocationspace.observe(featureset["num"], True, "num")
                     if "poss" in featureset:
+                        featurecontextspace.observe(featureset["poss"], True, "poss")
+                        featurecollocationspace.observe(featureset["poss"], True, "poss")
                         thesefeatures.append(featureset["poss"])
                     for cc in clitics:
                         if cc in featureset:
+                            featurecontextspace.observe(cc, True, "clitic")
+                            featurecollocationspace.observe(cc, True, "clitic")
                             thesefeatures.append(cc)
                     for fff in thesefeatures:
-                        featurecontextspace.observe(fff)
-                        featurecollocationspace.observe(fff)
                         lemmacasespace.addintoitem(lemma, fff)
                         for eee in thesefeatures:
                             if fff != eee:
@@ -80,43 +86,63 @@ for file in files:
                     lhs = words[i-window:i]
                     rhs = words[i+1:i+window+1]
                     for lw in lhs:
-                        tokencontextspace.addintoitem(word, lw, readrawtext.weight(word),
-                                                      "before")
+                        tokencontextspace.addintoitem(word, lw, readrawtext.weight(word), "before")
                         for fff in thesefeatures:
                             featurecontextspace.addintoitem(fff, lw, 1, "before")
                     for rw in rhs:
                         tokencontextspace.addintoitem(word, rw, readrawtext.weight(word), "after")
                         for fff in thesefeatures:
-                            featurecontextspace.addintoitem(fff, rw, 1,"after")
+                            featurecontextspace.addintoitem(fff, rw, 1, "after")
+            if len(flag) >= 1:
+                antalord += len(words)
             for knownword in flag:
                 featureset = morphology.lookup(knownword)
                 thesefeatures = [featureset["case"], featureset["num"]]
+                featureutterancespace.observe(featureset["case"], True, "case")
+                featureutterancespace.observe(featureset["num"], True, "num")
                 if "poss" in featureset:
+                    featureutterancespace.observe(featureset["poss"], True, "poss")
                     thesefeatures.append(featureset["poss"])
                 for cc in clitics:
                     if cc in featureset:
+                        featureutterancespace.observe(cc, True, "clitic")
                         thesefeatures.append(cc)
                 tokenutterancespace.observe(knownword, True, featureset["lemma"])
-                for fff in thesefeatures:
-                    featureutterancespace.observe(fff)
                 for word in words:
                     tokenutterancespace.addintoitem(knownword, word)
                     for fff in thesefeatures:
                         featureutterancespace.addintoitem(fff, word)
             flag = []
-    if i > 10:
+    if i > 3:
         i = 0
-        print("==", n, "============", sep="\t")
+        print("==", antalsatser, antalord, "============", sep="\t")
         for s in [tokencontextspace, tokenutterancespace]:
-            print(s.name)
+            print(s.name, "----------", sep="\t")
+            tokenneighbours = {}
+            nabesize = {}
             for oneitem in s.contextspace:
-                print(oneitem)
-                print(s.contextneighbours(oneitem,100,True,True))
-        for s in [featurecontextspace, featureutterancespace,
-                  featurecollocationspace,
-                  lemmacasespace]:
-            print(s.name)
-            for oneitem in s.contextspace:
-                print(oneitem)
-                print(s.contextneighbours(oneitem,100,True))
+                if s.tag[oneitem] not in tokenneighbours:
+                    tokenneighbours[s.tag[oneitem]] = 0
+                    nabesize[s.tag[oneitem]] = 0
+                nabe = s.contextneighbours(oneitem, 0, True, True)
+                for nnn in nabe:
+                    tokenneighbours[s.tag[oneitem]] += nnn[1] / ((len(nabe) + 1) * len(nabe))
+                    if nnn[1] > threshold:
+                        nabesize[s.tag[oneitem]] += 1 / len(nabe)
+            for lemma in tokenneighbours:
+                print(lemma, tokenneighbours[lemma], nabesize[lemma], sep="\t")
 
+        for s in [lemmacasespace]:
+            print(s.name)
+            for oneitem in s.contextspace:
+                print(oneitem, s.contextneighbours(oneitem), sep="\t")
+
+        for s in [featurecontextspace, featureutterancespace]:
+            print(s.name)
+            for oneitem in s.contextspace:
+                print(oneitem, s.contextneighbours(oneitem, 0, True, True, 0), sep="\t")
+
+        for s in [featurecollocationspace]:
+            print(s.name)
+            for oneitem in s.contextspace:
+                print(oneitem, s.contextneighbours(oneitem, 0, True, False, 0), sep="\t")
