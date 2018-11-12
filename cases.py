@@ -3,6 +3,7 @@ import hyperdimensionalsemanticspace
 from nltk import sent_tokenize
 from nltk import word_tokenize
 import readrawtext
+import time
 
 
 def nop(dummy):
@@ -68,7 +69,7 @@ for file in files:
                         if dd in featureset:
                             featurecontextspace.observe(featureset[dd], True, dd)
                             featurecollocationspace.observe(featureset[dd], True, dd)
-                            thesefeatures.append(dd)
+                            thesefeatures.append(featureset[dd])
                     for cc in clitics:
                         if cc in featureset:
                             featurecontextspace.observe(cc, True, "clitic")
@@ -98,7 +99,7 @@ for file in files:
                 for dd in ["case", "num", "poss"]:
                     if dd in featureset:
                         featureutterancespace.observe(featureset[dd], True, dd)
-                        thesefeatures.append(dd)
+                        thesefeatures.append(featureset[dd])
                 for cc in clitics:
                     if cc in featureset:
                         featureutterancespace.observe(cc, True, "clitic")
@@ -111,7 +112,7 @@ for file in files:
             flag = []
     if i > 3:
         i = 0
-        print("==", antalsatser, antalord, "============", sep="\t")
+        print("==", time.ctime(), "==", antalsatser, "==", antalord, "============",  sep="\t")
         for s in [tokencontextspace, tokenutterancespace]:
             print(s.name, "----------", sep="\t")
             tokenneighbours = {}
