@@ -17,7 +17,7 @@ def nop(dummy):
     # do nothing
     return None
 
-outputfile = "/home/jussi/finnish-cases-output.txt"
+outputfile = "/home/jussi/aktuellt/1.case/tammikuu/finnish-cases-output.txt"
 
 dimensionality = 2000
 denseness = 10
